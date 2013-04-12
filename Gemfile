@@ -11,4 +11,5 @@ group :test do
   gem "minitest"
   gem "ZenTest"
   gem "autotest-growl"
+  gem "mocha"
 end

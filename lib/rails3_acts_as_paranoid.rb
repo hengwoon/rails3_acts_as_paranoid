@@ -87,12 +87,12 @@ module ActsAsParanoid
     extend ParanoidValidations::ClassMethods
   end
 
-  def primary_paranoid_column
-    self.paranoid_configuration[:primary_column]
+  def all_paranoid_columns
+    self.paranoid_configuration[:all_columns]
   end
 
-  def secondary_paranoid_columns
-    self.paranoid_configuration[:secondary_columns]
+  def primary_paranoid_column
+    self.all_paranoid_columns.first
   end
 
   def build_column_config(options={})
@@ -114,16 +114,8 @@ module ActsAsParanoid
     class_attribute :paranoid_configuration, :paranoid_column_reference
 
     options = DEFAULT_CONFIG.merge(options)
-    if options[:columns]
-      primary_column    = options[:columns].first
-      secondary_columns = options[:columns][1..-1]
-    else
-      primary_column    = options
-      secondary_columns = []
-    end
     self.paranoid_configuration = {
-      :primary_column    => build_column_config(primary_column),
-      :secondary_columns => secondary_columns.map { |column| build_column_config(column) }
+      :all_columns       => options[:columns] || [options]
     }
 
     self.paranoid_column_reference = "#{self.table_name}.#{primary_paranoid_column[:column]}"
@@ -185,7 +177,7 @@ module ActsAsParanoid
     end
 
     def delete_all(conditions = nil)
-      columns = secondary_paranoid_columns.push(primary_paranoid_column)
+      columns = all_paranoid_columns
 
       sql = columns.map do |column|
         "#{column[:column]} = ?"

@@ -218,6 +218,16 @@ class ParanoidTest < ParanoidBaseTest
       assert @paranoid_with_callback.called_before_recover
       assert @paranoid_with_callback.called_after_recover
   end
+
+  # Ensure that successive deletes on the same class generate the
+  # expected update conditions
+  def test_for_contained_scope
+    p1 = ParanoidBoolean.create!(:name => "p1")
+    p2 = ParanoidBoolean.create!(:name => "p2")
+    p1.destroy
+    ParanoidBoolean.expects(:update_all).with(['is_deleted = ?', true], anything)
+    p2.destroy
+  end
 end
 
 class ValidatesUniquenessTest < ParanoidBaseTest
