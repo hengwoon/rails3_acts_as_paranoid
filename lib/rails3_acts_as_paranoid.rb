@@ -88,11 +88,7 @@ module ActsAsParanoid
   end
 
   def primary_paranoid_column
-    self.paranoid_configuration[:primary_column]
-  end
-
-  def secondary_paranoid_columns
-    self.paranoid_configuration[:secondary_columns]
+    self.paranoid_columns.first
   end
 
   def build_column_config(options={})
@@ -111,21 +107,10 @@ module ActsAsParanoid
   def acts_as_paranoid(options = {})
     raise ArgumentError, "Hash expected, got #{options.class.name}" if not options.is_a?(Hash) and not options.empty?
 
-    class_attribute :paranoid_configuration, :paranoid_column_reference
+    class_attribute :paranoid_columns, :paranoid_column_reference
 
     options = DEFAULT_CONFIG.merge(options)
-    if options[:columns]
-      primary_column    = options[:columns].first
-      secondary_columns = options[:columns][1..-1]
-    else
-      primary_column    = options
-      secondary_columns = []
-    end
-    self.paranoid_configuration = {
-      :primary_column    => build_column_config(primary_column),
-      :secondary_columns => secondary_columns.map { |column| build_column_config(column) }
-    }
-
+    self.paranoid_columns = (options[:columns] || [options]).map {|column| build_column_config(column)}
     self.paranoid_column_reference = "#{self.table_name}.#{primary_paranoid_column[:column]}"
 
     return if paranoid?
@@ -185,12 +170,10 @@ module ActsAsParanoid
     end
 
     def delete_all(conditions = nil)
-      columns = secondary_paranoid_columns.push(primary_paranoid_column)
-
-      sql = columns.map do |column|
+      sql = self.paranoid_columns.map do |column|
         "#{column[:column]} = ?"
       end.join(", ")
-      values = columns.map{ |column| delete_now_value(column) }
+      values = self.paranoid_columns.map{ |column| delete_now_value(column) }
 
       update_all [sql, *values], conditions
     end
