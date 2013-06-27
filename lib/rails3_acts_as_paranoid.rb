@@ -199,6 +199,20 @@ module ActsAsParanoid
       end
     end
 
+    # Public: Return or yield a scope with the with_deleted behavior specified by a parameter
+    #
+    # with_deleted_option  - The Boolean specifying whether the returned scope should include the with_deleted scope.
+    #
+    # Examples
+    #
+    #   scope_with_deleted_option(true)
+    #   # => a scope which included the with_deleted scope
+    #
+    #   scope_with_deleted_option(false)
+    #   # => a bare scope with no additional scopes added
+    #
+    # If passed a block, the method yields the computed scope to the block, otherwise returns it.
+
     def scope_with_deleted_option(with_deleted_option = false)
       scope = scoped
       scope = scope.with_deleted if with_deleted_option
