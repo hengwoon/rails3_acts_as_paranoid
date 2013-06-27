@@ -198,6 +198,16 @@ module ActsAsParanoid
         when "string" then column[:deleted_value]
       end
     end
+
+    def scope_with_deleted_option(with_deleted_option = false)
+      scope = scoped
+      scope = scope.with_deleted if with_deleted_option
+      if block_given?
+        yield scope
+      else
+        scope
+      end
+    end
   end
 
   module InstanceMethods
