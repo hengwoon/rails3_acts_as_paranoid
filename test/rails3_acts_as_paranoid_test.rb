@@ -228,6 +228,25 @@ class ParanoidTest < ParanoidBaseTest
     ParanoidBoolean.expects(:update_all).with(['is_deleted = ?', true], anything)
     p2.destroy
   end
+
+  def test_scope_with_deleted_option
+    ParanoidBoolean.delete_all!
+    p1 = ParanoidBoolean.create!(:name => "p1")
+    p2 = ParanoidBoolean.create!(:name => "p2")
+    p1.destroy
+    block_true_count = ParanoidBoolean.scope_with_deleted_option(true) do |scope|
+      scope.count
+    end
+    assert_equal 2, block_true_count
+    block_false_count = ParanoidBoolean.scope_with_deleted_option(false) do |scope|
+      scope.count
+    end
+    assert_equal 1, block_false_count
+    scope_true_count = ParanoidBoolean.scope_with_deleted_option(true).count
+    assert_equal 2, scope_true_count
+    scope_false_count = ParanoidBoolean.scope_with_deleted_option(false).count
+    assert_equal 1, scope_false_count
+  end
 end
 
 class ValidatesUniquenessTest < ParanoidBaseTest
