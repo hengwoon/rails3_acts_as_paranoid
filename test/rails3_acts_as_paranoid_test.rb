@@ -158,6 +158,24 @@ class ParanoidTest < ParanoidBaseTest
     assert_equal @paranoid_boolean_count + 3, ParanoidBoolean.count
   end
 
+  def test_recursive_recovery_with_required_dependents
+    @paranoid_require_dependent_object = ParanoidRequireDependent.first
+
+    assert_equal 3, ParanoidHasManyRequiredDependent.count
+    assert_equal 3, ParanoidRequireDependent.count
+
+    @paranoid_require_dependent_object.destroy
+    @paranoid_require_dependent_object.reload
+
+    assert_equal 2, ParanoidRequireDependent.count
+    assert_equal 2, ParanoidHasManyRequiredDependent.count
+
+    @paranoid_require_dependent_object.recover(:recursive => true)
+
+    assert_equal 3, ParanoidRequireDependent.count
+    assert_equal 3, ParanoidHasManyRequiredDependent.count
+  end
+
   def test_non_recursive_recovery
     setup_recursive_recovery_tests
 

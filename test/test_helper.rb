@@ -25,6 +25,21 @@ def setup_db
       t.timestamps
     end
 
+    create_table :paranoid_require_dependents do |t|
+      t.string    :name
+      t.datetime  :deleted_at
+
+      t.timestamps
+    end
+
+    create_table :paranoid_has_many_required_dependents do |t|
+      t.string    :name
+      t.datetime  :deleted_at
+      t.integer   :paranoid_require_dependent_id
+
+      t.timestamps
+    end
+
     create_table :paranoid_booleans do |t|
       t.string    :name
       t.boolean   :is_deleted, :default => false
@@ -174,6 +189,31 @@ class ParanoidTime < ActiveRecord::Base
   has_one :has_one_not_paranoid, :dependent => :destroy
 
   belongs_to :not_paranoid, :dependent => :destroy
+
+end
+
+class ParanoidRequireDependent < ActiveRecord::Base
+  acts_as_paranoid
+  validates_uniqueness_of :name
+  validate :custom
+
+  has_many :paranoid_has_many_required_dependents, :dependent => :destroy
+
+  def custom
+    errors[:base] << "Needs at least one paranoid dependent" unless paranoid_has_many_required_dependents.size > 0
+  end
+
+  def self.create_with_dependents!(attrs)
+    ptc = new(attrs)
+    ptc.paranoid_has_many_required_dependents.build
+    ptc.save!
+  end
+end
+
+class ParanoidHasManyRequiredDependent < ActiveRecord::Base
+  acts_as_paranoid
+
+  belongs_to :paranoid_require_dependent
 end
 
 default_config = ActsAsParanoid::DEFAULT_CONFIG.dup
@@ -362,6 +402,7 @@ class ParanoidBaseTest < ActiveSupport::TestCase
 
     ["paranoid", "really paranoid", "extremely paranoid"].each do |name|
       ParanoidTime.create! :name => name
+      ParanoidRequireDependent.create_with_dependents! :name => name
       ParanoidBoolean.create! :name => name
       ParanoidBooleanAndDate.create! :name => name
     end
