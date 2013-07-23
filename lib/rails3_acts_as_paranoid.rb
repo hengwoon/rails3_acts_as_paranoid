@@ -313,6 +313,10 @@ module ActsAsParanoid
           end
         end
       end
+
+      # We would like to call self.clear_association_cache but can't because it only
+      # works if self isn't deleted.
+      association_cache.clear
     end
 
     def act_on_dependent_destroy_associations
