@@ -15,7 +15,7 @@ module ActiveRecord
     alias_method :destroy!, :destroy
     def destroy(id)
       if paranoid?
-        update_all(paranoid_deletion_attributes, {:id => id})
+        where({:id => id}).update_all(paranoid_deletion_attributes)
       else
         destroy!(id)
       end
@@ -34,7 +34,7 @@ module ActiveRecord
 
     def delete_all(conditions = nil)
       if paranoid?
-        update_all(paranoid_deletion_attributes, conditions)
+        where(conditions).update_all(paranoid_deletion_attributes)
       else
         delete_all!(conditions)
       end
@@ -45,10 +45,10 @@ module ActiveRecord
     end
 
     def with_deleted
-      wd = self.clone
-      wd.default_scoped = false
-      wd.arel = self.build_arel
-      wd
+      scope = self.scoped.with_default_scope
+      operator = non_deleted_value.nil? ? "IS" : "="
+      scope.where_values.delete(build_where("#{paranoid_column_reference} #{operator} ?", [non_deleted_value]).first)
+      scope
     end
   end
 end
@@ -158,11 +158,11 @@ module ActsAsParanoid
     end
 
     def delete!(id_or_array)
-      delete_all!(deletion_conditions(id_or_array))
+      where(deletion_conditions(id_or_array)).delete_all!
     end
 
     def delete(id_or_array)
-      delete_all(deletion_conditions(id_or_array))
+      where(deletion_conditions(id_or_array)).delete_all
     end
 
     def delete_all!(conditions = nil)
@@ -175,7 +175,7 @@ module ActsAsParanoid
       end.join(", ")
       values = self.paranoid_columns.map{ |column| delete_now_value(column) }
 
-      update_all [sql, *values], conditions
+      where(conditions).update_all [sql, *values]
     end
 
     def paranoid_column
@@ -214,7 +214,7 @@ module ActsAsParanoid
     # If passed a block, the method yields the computed scope to the block, otherwise returns it.
 
     def scope_with_deleted_option(with_deleted_option = false)
-      scope = scoped
+      scope = all
       scope = scope.with_deleted if with_deleted_option
       if block_given?
         yield scope
@@ -322,7 +322,7 @@ module ActsAsParanoid
     def act_on_dependent_destroy_associations
       self.class.dependent_associations.each do |association|
         if association.collection? && self.send(association.name).paranoid?
-          association.klass.with_deleted.instance_eval("find_all_by_#{association.foreign_key}(#{self.id.to_json})").each do |object|
+          association.klass.with_deleted.where(association.foreign_key => self.id).each do |object|
             object.destroy!
           end
         end

@@ -4,6 +4,8 @@ require 'active_support'
 require 'active_support/core_ext/numeric/time'
 require 'active_record'
 require 'active_model'
+require 'rails/observers/activerecord/active_record'
+require 'debugger'
 
 $:.unshift "#{File.dirname(__FILE__)}/../"
 $:.unshift "#{File.dirname(__FILE__)}/../lib/"
@@ -234,7 +236,7 @@ ActsAsParanoid.default_config = {
   ]
 }
 class ParanoidBooleanAndDateDefaultConfig < ActiveRecord::Base
-  set_table_name :paranoid_boolean_and_dates
+  self.table_name = :paranoid_boolean_and_dates
   acts_as_paranoid
 end
 Kernel.silence_warnings { ActsAsParanoid::DEFAULT_CONFIG = default_config }

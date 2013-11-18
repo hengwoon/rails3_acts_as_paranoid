@@ -73,7 +73,7 @@ class ParanoidTest < ParanoidBaseTest
 
   def test_paranoid_scope
     assert_raise(NoMethodError) { NotParanoid.delete_all! }
-    assert_raise(NoMethodError) { NotParanoid.first.destroy! }
+    assert_raise(NoMethodError) { NotParanoid.first.delete! }
     assert_raise(NoMethodError) { NotParanoid.with_deleted }
     assert_raise(NoMethodError) { NotParanoid.only_deleted }
   end
@@ -243,7 +243,10 @@ class ParanoidTest < ParanoidBaseTest
     p1 = ParanoidBoolean.create!(:name => "p1")
     p2 = ParanoidBoolean.create!(:name => "p2")
     p1.destroy
-    ParanoidBoolean.expects(:update_all).with(['is_deleted = ?', true], anything)
+    where = stub
+    where.stubs(:update_all)
+    ParanoidBoolean.stubs(:where).returns(where)
+    where.expects(:update_all).with(['is_deleted = ?', true], anything)
     p2.destroy
   end
 
