@@ -68,7 +68,7 @@ class ParanoidTest < ParanoidBaseTest
 
     ParanoidTime.delete_all!
     assert_empty ParanoidTime.all
-    assert_empty ParanoidTime.with_deleted.all
+    assert_empty ParanoidTime.with_deleted.to_a
   end
 
   def test_paranoid_scope

@@ -45,7 +45,7 @@ module ActiveRecord
     end
 
     def with_deleted
-      scope = self.scoped.with_default_scope
+      scope = self.load.with_default_scope
       operator = non_deleted_value.nil? ? "IS" : "="
       scope.where_values.delete(build_where("#{paranoid_column_reference} #{operator} ?", [non_deleted_value]).first)
       scope
