@@ -5,7 +5,7 @@ require 'active_support/core_ext/numeric/time'
 require 'active_record'
 require 'active_model'
 require 'rails/observers/activerecord/active_record'
-require 'debugger'
+#require 'debugger'
 
 $:.unshift "#{File.dirname(__FILE__)}/../"
 $:.unshift "#{File.dirname(__FILE__)}/../lib/"

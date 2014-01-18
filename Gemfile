@@ -11,5 +11,5 @@ group :test do
   gem "ZenTest"
   gem "autotest-growl"
   gem "mocha"
-  gem 'debugger'
+  #gem 'debugger'
 end
